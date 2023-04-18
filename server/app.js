@@ -4,32 +4,68 @@ const path = require("path");
 const http = require("http");
 const socketio = require("socket.io");
 
+const { formatMessage } = require("./utils/messages");
+const {
+  userJoin,
+  getCurrentUser,
+  getRoomUsers,
+  userLeave,
+} = require("./utils/users");
+const botName = "Chat Bot";
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
 app.use(express.static(path.join(__dirname, "../public")));
-console.log(__dirname, "../../public");
 
 //When client connects
 io.on("connection", (socket) => {
-  //welcome current user
-  socket.emit("message", "Welcome to chat");
+  socket.on("joinRoom", ({ username, room }) => {
+    const user = userJoin(socket.id, username, room);
 
-  //broadcast when a user connects
-  socket.broadcast.emit("message", "A user has joined at chat");
+    socket.join(user.room);
+    //welcome current user
+    socket.emit(
+      "message",
+      formatMessage(botName, ` Welcome to chat ${user.username}`)
+    );
 
-  //runs when client disconnects
-  socket.on("disconnect", () => {
-    io.emit("message", "User has left the chat");
+    //broadcast when a user connects
+    socket.broadcast
+      .to(user.room)
+      .emit(
+        "message",
+        formatMessage(botName, `${user.username} has joined at chat`)
+      );
+
+        io.to(user.room).emit('roomUsers', ({
+          room: user.room,
+          users: getRoomUsers(user.room)
+        }))
   });
 
-//   lisening chatmessage
-  socket.on('chatMessage', (msg) => {
-    io.emit('message',msg)
-  })
+  //   lisening chatmessage
+  socket.on("chatMessage", (msg) => {
+    const user = getCurrentUser(socket.id);
+    io.to(user.room).emit("message", formatMessage(user.username, msg));
+  });
+  //runs when client disconnects
+  socket.on("disconnect", () => {
+    const user = userLeave(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "message",
+        formatMessage(botName, `${user.username} has left the chat`)
+      );
+      io.to(user.room).emit('roomUsers', ({
+        room: user.room,
+        users: getRoomUsers(user.room)
+      }))
+    }
+  });
 });
 
 server.listen(process.env.PORT, () => {
-  console.log(`App Sarted on Port [+]${process.env.PORT}`);
+  console.log(`App Sarted [+] http://localhost:${process.env.PORT}`);
 });

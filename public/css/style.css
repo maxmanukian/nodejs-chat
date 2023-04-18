@@ -50,10 +50,10 @@
 
 
 :root {
-	--primary-color: #a0a0a0;
+	--primary-color: #000000;
 	--secondary-color: #959595;
 	--background-color: #7e7e7e;
-	--text-color: #500295;
+	--text-color: #3d1262;
 	--success-color: #5cb85c;
 	--error-color: #d9534f;
 }
