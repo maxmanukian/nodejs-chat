@@ -1,6 +1,6 @@
-# NOdeJs Chat
+# NodeJs Chat
 
-This is a simple chat application built using websockets. It allows users to join chat rooms, send messages, and receive messages in real-time. This README file provides an overview of the application and its usage.
+This is a simple WebSocket practice application that demonstrates how to work with websockets using Node.js and Socket.IO. It includes basic functionality to join chat rooms, send and receive messages, and track users in a room.
 
 ## Prerequisites
 
